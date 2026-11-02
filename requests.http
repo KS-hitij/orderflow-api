@@ -1,0 +1,77 @@
+@host = http://localhost:3000
+
+### Health
+GET {{host}}/health
+
+### Register a customer
+POST {{host}}/api/auth/register
+Content-Type: application/json
+
+{ "email": "alice@example.com", "password": "password123" }
+
+### Login as customer
+# @name login
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "email": "alice@example.com", "password": "password123" }
+
+### Login as seeded admin
+# @name adminLogin
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "email": "admin@orderflow.test", "password": "admin-password-123" }
+
+@token = {{login.response.body.token}}
+@adminToken = {{adminLogin.response.body.token}}
+
+### List products
+GET {{host}}/api/products?page=1&pageSize=5
+
+### Get one product (paste an id from the list)
+GET {{host}}/api/products/REPLACE_WITH_PRODUCT_ID
+
+### Create product (admin)
+POST {{host}}/api/products
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "sku": "NEW-100", "name": "Test Product", "priceCents": 1999, "stock": 20 }
+
+### Adjust stock (admin)
+PATCH {{host}}/api/products/REPLACE_WITH_PRODUCT_ID/stock
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "delta": 5 }
+
+### Create order
+POST {{host}}/api/orders
+Authorization: Bearer {{token}}
+Content-Type: application/json
+Idempotency-Key: demo-key-1
+
+{
+  "items": [{ "productId": "REPLACE_WITH_PRODUCT_ID", "quantity": 2 }],
+  "discountCode": "SAVE10"
+}
+
+### List my orders
+GET {{host}}/api/orders?page=1&pageSize=10
+Authorization: Bearer {{token}}
+
+### Get order
+GET {{host}}/api/orders/REPLACE_WITH_ORDER_ID
+Authorization: Bearer {{token}}
+
+### Cancel order
+POST {{host}}/api/orders/REPLACE_WITH_ORDER_ID/cancel
+Authorization: Bearer {{token}}
+
+### Change order status (admin)
+PATCH {{host}}/api/orders/REPLACE_WITH_ORDER_ID/status
+Authorization: Bearer {{adminToken}}
+Content-Type: application/json
+
+{ "status": "paid" }
